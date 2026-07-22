@@ -304,6 +304,10 @@
             </div>
           </fieldset>
         </div>
+        <div class="field full" id="disabilityDetailsWrap" style="display:none;">
+          <label>Disability details</label>
+          <input type="text" id="disabilityDetails" placeholder="e.g. visual impairment, mobility difficulty">
+        </div>
         <div class="field full">
           <label>Reason the student is out of education</label>
           <textarea id="reason" placeholder="e.g. family cannot afford school fees / lost breadwinner / displaced from home area"></textarea>
@@ -335,7 +339,7 @@
         </div>
         <div class="field">
           <label>Education place *</label>
-          <input type="text" id="eduPlace"  placeholder="Name of school / malcaamad / university">
+          <input type="text" id="eduPlace" required placeholder="Name of school / malcaamad / university">
         </div>
         <div class="field full">
           <fieldset>
@@ -457,8 +461,8 @@
   //  Supabase Dashboard → Project Settings → API
   // ============================================================
   window.BURCO_CONFIG = {
-    SUPABASE_URL: "https://ergkrohuxnexinsupaob.supabase.co",     // e.g. https://xxxxxxxx.supabase.co
-    SUPABASE_ANON_KEY: "sb_publishable_QlbY5RwsRh1eUErTQXyPEw_pwHJ0kFQ",    // the "anon public" key, not service_role
+    SUPABASE_URL: "https://ergkrohuxnexinsupaob.supabase.co",
+    SUPABASE_ANON_KEY: "sb_publishable_QlbY5RwsRh1eUErTQXyPEw_pwHJ0kFQ",
     APP_PASSWORD: "burco2026"                        // password volunteers will type in
   };
   // ============================================================
