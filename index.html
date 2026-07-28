@@ -422,6 +422,7 @@
           <option>Primary School</option>
           <option>Secondary School</option>
           <option>University</option>
+           <option>Machad</option>
         </select>
         <select id="filterSponsor">
           <option value="">Sponsorship: all</option>
@@ -475,7 +476,7 @@ const cfg = window.BURCO_CONFIG;
 const supabase = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
 
 const villages = ["Sheikh Bashir","Maxamed Cali","Lixle","Farah Omar"];
-const sectors = ["Malcaamad","Primary School","Secondary School","University"];
+const sectors = ["Malcaamad","Primary School","Secondary School","University","Machad"];
 let allRecords = [];
 
 // ---- Login ----
