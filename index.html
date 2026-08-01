@@ -192,6 +192,8 @@
   .tag.village{background:rgba(27,90,168,0.1);color:var(--blue-deep);}
   .tag.sector{background:rgba(79,154,46,0.12);color:var(--green-leaf);}
   .tag.sponsor{background:rgba(201,130,42,0.15);color:var(--amber);}
+  .tag.covered{background:rgba(79,154,46,0.15);color:var(--green-leaf);}
+  .tag.inprocess{background:rgba(179,67,47,0.12);color:var(--danger);}
   .rec .meta{font-size:12.8px;color:var(--ink-soft);line-height:1.6;}
   .rec .meta b{color:var(--ink);font-weight:600;}
   .rec .btns{display:flex;gap:8px;flex-shrink:0;}
@@ -335,9 +337,7 @@
             <option>Primary School</option>
             <option>Secondary School</option>
             <option>University</option>
-             <option>Machad</option>
-            <option>Farsamada Gacanta</option>
-     </select>
+          </select>
         </div>
         <div class="field">
           <label>Education place *</label>
@@ -355,6 +355,15 @@
         <div class="field full">
           <label>Sponsorship / cost notes <span class="hint">(e.g. fee amount, what's needed)</span></label>
           <input type="text" id="sponsorNotes" placeholder="e.g. needs $15/month for fees and books">
+        </div>
+        <div class="field full">
+          <fieldset>
+            <legend>Educational expenses status</legend>
+            <div class="radio-row">
+              <label><input type="radio" name="expenseStatus" value="In Process" checked> Still in process</label>
+              <label><input type="radio" name="expenseStatus" value="Covered"> Covered</label>
+            </div>
+          </fieldset>
         </div>
 
         <div class="section-title">Parent / guardian information</div>
@@ -423,8 +432,6 @@
           <option>Primary School</option>
           <option>Secondary School</option>
           <option>University</option>
-           <option>Machad</option>
-          <option>Farsamada Gacanta</option>
         </select>
         <select id="filterSponsor">
           <option value="">Sponsorship: all</option>
@@ -467,7 +474,7 @@
   window.BURCO_CONFIG = {
     SUPABASE_URL: "https://ergkrohuxnexinsupaob.supabase.co",
     SUPABASE_ANON_KEY: "sb_publishable_QlbY5RwsRh1eUErTQXyPEw_pwHJ0kFQ",
-    APP_PASSWORD: "B-volunteers887!"                        // password volunteers will type in
+    APP_PASSWORD: "burco2026"                        // password volunteers will type in
   };
   // ============================================================
 </script>
@@ -478,7 +485,7 @@ const cfg = window.BURCO_CONFIG;
 const supabase = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
 
 const villages = ["Sheikh Bashir","Maxamed Cali","Lixle","Farah Omar"];
-const sectors = ["Malcaamad","Primary School","Secondary School","University","Machad","Farsamada Gacanta"];
+const sectors = ["Malcaamad","Primary School","Secondary School","University"];
 let allRecords = [];
 
 // ---- Login ----
@@ -556,7 +563,7 @@ function fromDb(r){
     id: r.id, fullName: r.full_name, age: r.age, gender: r.gender, regDate: r.reg_date,
     disability: r.disability, disabilityDetails: r.disability_details, reason: r.reason,
     village: r.village, sector: r.sector, eduPlace: r.edu_place,
-    sponsorNeeded: r.sponsor_needed, sponsorNotes: r.sponsor_notes,
+    sponsorNeeded: r.sponsor_needed, sponsorNotes: r.sponsor_notes, expenseStatus: r.expense_status,
     parentName: r.parent_name, parentRel: r.parent_rel, parentPhone: r.parent_phone,
     parentOccupation: r.parent_occupation, registeredBy: r.registered_by,
     followUpPhone: r.follow_up_phone, notes: r.notes
@@ -567,7 +574,7 @@ function toDb(r){
     full_name: r.fullName, age: r.age ? parseInt(r.age) : null, gender: r.gender, reg_date: r.regDate || null,
     disability: r.disability, disability_details: r.disabilityDetails, reason: r.reason,
     village: r.village, sector: r.sector, edu_place: r.eduPlace,
-    sponsor_needed: r.sponsorNeeded, sponsor_notes: r.sponsorNotes,
+    sponsor_needed: r.sponsorNeeded, sponsor_notes: r.sponsorNotes, expense_status: r.expenseStatus,
     parent_name: r.parentName, parent_rel: r.parentRel, parent_phone: r.parentPhone,
     parent_occupation: r.parentOccupation, registered_by: r.registeredBy,
     follow_up_phone: r.followUpPhone, notes: r.notes
@@ -595,6 +602,7 @@ form.addEventListener('submit', async (e)=>{
     eduPlace: document.getElementById('eduPlace').value.trim(),
     sponsorNeeded: document.querySelector('input[name=sponsor]:checked').value,
     sponsorNotes: document.getElementById('sponsorNotes').value.trim(),
+    expenseStatus: document.querySelector('input[name=expenseStatus]:checked').value,
     parentName: document.getElementById('parentName').value.trim(),
     parentRel: document.getElementById('parentRel').value,
     parentPhone: document.getElementById('parentPhone').value.trim(),
@@ -654,6 +662,7 @@ window.editRecord = function(id){
   document.getElementById('eduPlace').value = r.eduPlace;
   document.querySelector(`input[name=sponsor][value="${r.sponsorNeeded}"]`).checked = true;
   document.getElementById('sponsorNotes').value = r.sponsorNotes || '';
+  document.querySelector(`input[name=expenseStatus][value="${r.expenseStatus || 'In Process'}"]`).checked = true;
   document.getElementById('parentName').value = r.parentName || '';
   document.getElementById('parentRel').value = r.parentRel;
   document.getElementById('parentPhone').value = r.parentPhone || '';
@@ -666,6 +675,17 @@ window.editRecord = function(id){
   document.getElementById('cancelEditBtn').style.display = '';
   document.querySelector('[data-tab=register]').click();
   window.scrollTo({top:0, behavior:'smooth'});
+};
+
+window.toggleExpenseStatus = async function(id){
+  const r = allRecords.find(x=>x.id===id);
+  if(!r) return;
+  const newStatus = r.expenseStatus === 'Covered' ? 'In Process' : 'Covered';
+  const { error } = await supabase.from('students').update({ expense_status: newStatus }).eq('id', id);
+  if(error){ alert('Could not update status.'); return; }
+  await loadRecords();
+  renderRecords();
+  renderDashboard();
 };
 
 window.deleteRecord = async function(id){
@@ -706,6 +726,7 @@ function renderRecords(){
           <span class="tag village">${escapeHtml(r.village)}</span>
           <span class="tag sector">${escapeHtml(r.sector)}</span>
           ${r.sponsorNeeded==='Yes' ? '<span class="tag sponsor">Needs sponsor</span>' : ''}
+          <span class="tag ${r.expenseStatus==='Covered' ? 'covered' : 'inprocess'}">${escapeHtml(r.expenseStatus || 'In Process')}</span>
         </div>
         <div class="meta">
           <b>${escapeHtml(r.age)} yrs, ${escapeHtml(r.gender)}</b> &middot; ${escapeHtml(r.eduPlace)}<br>
@@ -716,6 +737,7 @@ function renderRecords(){
         </div>
       </div>
       <div class="btns">
+        <button class="icon-btn" title="${r.expenseStatus==='Covered' ? 'Mark as still in process' : 'Mark as covered'}" onclick="toggleExpenseStatus('${r.id}')">${r.expenseStatus==='Covered' ? '↺' : '✓'}</button>
         <button class="icon-btn" title="Edit" onclick="editRecord('${r.id}')">✎</button>
         <button class="icon-btn danger" title="Delete" onclick="deleteRecord('${r.id}')">✕</button>
       </div>
@@ -739,9 +761,13 @@ function renderDashboard(){
   const needSponsor = allRecords.filter(r=>r.sponsorNeeded==='Yes').length;
   const disabilityCount = allRecords.filter(r=>r.disability==='Yes').length;
   const uniVillages = new Set(allRecords.map(r=>r.village)).size;
+  const coveredCount = allRecords.filter(r=>r.expenseStatus==='Covered').length;
+  const inProcessCount = total - coveredCount;
 
   document.getElementById('statsGrid').innerHTML = `
     <div class="stat"><div class="n">${total}</div><div class="l">Total students</div></div>
+    <div class="stat"><div class="n">${coveredCount}</div><div class="l">Expenses covered</div></div>
+    <div class="stat"><div class="n">${inProcessCount}</div><div class="l">Still in process</div></div>
     <div class="stat"><div class="n">${needSponsor}</div><div class="l">Need sponsorship</div></div>
     <div class="stat"><div class="n">${disabilityCount}</div><div class="l">With a disability</div></div>
     <div class="stat"><div class="n">${uniVillages}</div><div class="l">Villages covered</div></div>
